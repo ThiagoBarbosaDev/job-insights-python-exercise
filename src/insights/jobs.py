@@ -21,7 +21,6 @@ def read(path: str) -> List[Dict]:
         with open(path, encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=",", quotechar='"')
             header, *data = reader
-            # print(header[0], data[0])
             people = list()
             for person in data:
                 job = dict()
@@ -48,7 +47,12 @@ def get_unique_job_types(path: str) -> List[str]:
     list
         List of unique job types
     """
-    raise NotImplementedError
+    try:
+        data = read(path)
+        uniqueJobs = list(set(job['job_type'] for job in data))
+        return uniqueJobs
+    except ValueError:
+        raise NotImplementedError
 
 
 def filter_by_job_type(jobs: List[Dict], job_type: str) -> List[Dict]:

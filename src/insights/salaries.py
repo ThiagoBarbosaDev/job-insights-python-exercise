@@ -57,6 +57,43 @@ def get_min_salary(path: str) -> int:
         raise ValueError
 
 
+def validate_jobs(job, salary):
+    try:
+        is_not_valid = any([
+            job.get('min_salary') is None,
+            job.get('max_salary') is None,
+            salary is None,
+            not str(job.get('min_salary')).isdigit(),
+            not str(job.get('max_salary')).isdigit(),
+            not str(salary).isdigit() and not isinstance(salary, int),
+        ])
+        if is_not_valid or int(job['min_salary']) > int(job['max_salary']):
+            raise ValueError
+        return True
+    except ValueError:
+        raise ValueError
+
+
+def pre_validate_jobs(job, salary):
+    try:
+        is_not_valid = any([
+            job.get('min_salary') is None,
+            job.get('max_salary') is None,
+            salary is None,
+            salary == '',
+            not isinstance(salary, int) and not isinstance(salary, str),
+            not str(job.get('min_salary')).isdigit(),
+            not str(job.get('max_salary')).isdigit(),
+        ])
+        if is_not_valid or int(job['min_salary']) > int(job['max_salary']):
+            return False
+        elif not str(salary).isdigit() and not isinstance(salary, int):
+            raise ValueError
+        return True
+    except ValueError:
+        raise ValueError
+
+
 def matches_salary_range(job: Dict, salary: Union[int, str]) -> bool:
     """Checks if a given salary is in the salary range of a given job
 
@@ -80,23 +117,16 @@ def matches_salary_range(job: Dict, salary: Union[int, str]) -> bool:
         If `job["min_salary"]` is greather than `job["max_salary"]`
         If `salary` isn't a valid integer
     """
+    # pergunta: se eu elevo essa comparação me lança um erro de tipo, o any
+    # não deveria ser um short circuit?
+    # pergunta2: um or não deveria aumentar complexidade? não aumenta
     try:
-        is_not_valid = any([
-            job.get('min_salary') is None,
-            job.get('max_salary') is None,
-            salary is None,
-            not str(job.get('min_salary')).isdigit(),
-            not str(job.get('max_salary')).isdigit(),
-            not str(salary).isdigit() and not isinstance(salary, int),
-        ])
-        # pergunta: se eu elevo essa comparação me lança um erro de tipo, o any
-        # não deveria ser um short circuit?
-        # pergunta2: um or não deveria aumentar complexidade? não aumenta
-        if is_not_valid or job['min_salary'] > job['max_salary']:
-            raise ValueError
-        elif int(salary) in range(job['min_salary'], job['max_salary'] + 1):
+        validate_jobs(job, salary)
+        if int(salary) in range(
+                                int(job['min_salary']),
+                                int(job['max_salary']) + 1
+                                ):
             return True
-
         return False
 
     except ValueError:
@@ -121,13 +151,8 @@ def filter_by_salary_range(
     list
         Jobs whose salary range contains `salary`
     """
-    raise NotImplementedError
-
-
-job = {'max_salary': 1500, 'min_salary': 0}
-
-
-salary = -1
-
-
-print(matches_salary_range(job, salary))
+    filteredJobs = [job for job in jobs
+                    if pre_validate_jobs(job, salary)]
+    result = [job for job in filteredJobs
+              if matches_salary_range(job, salary)]
+    return result

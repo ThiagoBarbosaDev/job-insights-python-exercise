@@ -1,5 +1,5 @@
 from typing import Union, List, Dict
-from src.insights.jobs import read
+# from src.insights.jobs import read
 # from jobs import read
 
 
@@ -80,7 +80,27 @@ def matches_salary_range(job: Dict, salary: Union[int, str]) -> bool:
         If `job["min_salary"]` is greather than `job["max_salary"]`
         If `salary` isn't a valid integer
     """
-    raise NotImplementedError
+    try:
+        is_not_valid = any([
+            job.get('min_salary') is None,
+            job.get('max_salary') is None,
+            salary is None,
+            not str(job.get('min_salary')).isdigit(),
+            not str(job.get('max_salary')).isdigit(),
+            not str(salary).isdigit() and not isinstance(salary, int),
+        ])
+        # pergunta: se eu elevo essa comparação me lança um erro de tipo, o any
+        # não deveria ser um short circuit?
+        # pergunta2: um or não deveria aumentar complexidade? não aumenta
+        if is_not_valid or job['min_salary'] > job['max_salary']:
+            raise ValueError
+        elif int(salary) in range(job['min_salary'], job['max_salary'] + 1):
+            return True
+
+        return False
+
+    except ValueError:
+        raise ValueError
 
 
 def filter_by_salary_range(
@@ -102,3 +122,12 @@ def filter_by_salary_range(
         Jobs whose salary range contains `salary`
     """
     raise NotImplementedError
+
+
+job = {'max_salary': 1500, 'min_salary': 0}
+
+
+salary = -1
+
+
+print(matches_salary_range(job, salary))
